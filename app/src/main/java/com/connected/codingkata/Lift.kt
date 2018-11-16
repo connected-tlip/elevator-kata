@@ -2,28 +2,26 @@ package com.connected.codingkata
 
 import java.util.Collections
 
-class Lift (val speaker: Speaker){
+class Lift(val speaker: Speaker) {
     val MAX_FLOORS = 10
     var floor: Int = 0
-    var targetFloor: Int = 0
-    var pushedButtons: ArrayList<Boolean> = ArrayList(Collections.nCopies(MAX_FLOORS, false))
+    var targetFloor: Int? = null
+    var pushedButtons: HashMap<Int, Boolean> = HashMap()
     val direction: Direction
-        get() = when {
-            floor < targetFloor -> Direction.UP
-            floor > targetFloor -> Direction.DOWN
-            else -> Direction.NO_DIRECTION
+        get() {
+            val tf = targetFloor ?: return Direction.NO_DIRECTION
+            return when {
+                floor < tf -> Direction.UP
+                floor > tf -> Direction.DOWN
+                else -> Direction.NO_DIRECTION
+            }
         }
     var doors: Doors = Doors.CLOSED
-
-    // decide which floor to move to next
-    fun move(destination: Int) {
-        targetFloor = destination
-    }
 
     fun findNextDestination(): Int {
         var min = 0
         var max = MAX_FLOORS
-        when(direction) {
+        when (direction) {
             Direction.UP -> min = floor + 1
             Direction.DOWN -> max = floor - 1
             else -> {
@@ -35,8 +33,8 @@ class Lift (val speaker: Speaker){
         //go through the range and check the pushed buttons and find
         //the first button that is true and return it
 
-        for (i in min .. max) {
-            if (pushedButtons[i]) {
+        for (i in min..max) {
+            if (pushedButtons[i] == true) {
                 return i
             }
         }
@@ -49,7 +47,8 @@ class Lift (val speaker: Speaker){
     // floor - Floor on which the person pressed the button
     // direction - Up or down depending on what was pressed
     fun call(floor: Int, direction: Direction) {
-        move(floor)
+        targetFloor = floor
+        pushedButtons[floor] = true
     }
 
     fun timeStep() {
@@ -59,29 +58,33 @@ class Lift (val speaker: Speaker){
 
         if (floor < targetFloor) {
             floor++
-        } else if ( floor > targetFloor){
+        } else if (floor > targetFloor) {
             floor--
         }
 
-        if(floor == targetFloor) {
+        if (pushedButtons.get(floor) == true) {
             speaker.ding()
             doors = Doors.OPENED
+            pushedButtons[floor] = false
         }
     }
 
     // When someone presses "destination" from inside of the elevator
-    fun pushFloor(floor: Int) {
+    fun pushFloor(f: Int) {
         pushedButtons[floor] = true
-        val target = findNextDestination()
-        System.out.println(target)
-        move(target)
+
+        targetFloor = floor
+        targetFloor = when (direction) {
+            Direction.UP -> Math.max(floor, targetFloor)
+            Direction.DOWN -> Math.min(floor, targetFloor)
+            Direction.NO_DIRECTION -> floor
+        }
     }
 }
 
 enum class Direction {
     UP, DOWN, NO_DIRECTION
 }
-
 
 enum class Doors {
     OPENED, CLOSED

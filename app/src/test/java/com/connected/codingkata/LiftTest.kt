@@ -26,7 +26,7 @@ class LiftTest {
     fun `move resets direction to NO_DIRECTION`() {
         lift.floor = 1
 
-        lift.move(destination = 4)
+        lift.targetFloor = 4
 
         for (i in 1..3)
             lift.timeStep()
@@ -36,7 +36,7 @@ class LiftTest {
 
     @Test
     fun `move up - floor test`() {
-        lift.move(4)
+        lift.targetFloor = 4
         for (i in 1..4) {
             lift.timeStep()
         }
@@ -45,7 +45,7 @@ class LiftTest {
 
     @Test
     fun `move down - 1 floor test`() {
-        lift.move(-1)
+        lift.targetFloor = -1
         lift.timeStep()
         assertThat(lift.floor, equalTo(-1))
     }
@@ -89,7 +89,7 @@ class LiftTest {
     @Test
     fun `it takes 1 second to move 1 floor`() {
         lift.floor = 1
-        lift.move(3)
+        lift.targetFloor = 3
 
         assertThat(lift.floor, equalTo(1))
         assertThat(lift.direction, equalTo(Direction.UP))
@@ -116,7 +116,7 @@ class LiftTest {
         lift.floor = 0
         lift.doors = Doors.OPENED
 
-        lift.move(3)
+        lift.targetFloor = 3
         lift.timeStep()
         lift.timeStep()
 
@@ -144,11 +144,65 @@ class LiftTest {
         lift.pushFloor(3)
 
         lift.timeStep()
+        assertEquals(2, lift.floor)
         assertEquals(Doors.CLOSED, lift.doors)
 
         lift.timeStep()
         assertEquals(Doors.OPENED, lift.doors)
         assertEquals(3, lift.floor)
+    }
+
+    @Test
+    fun `push floor - consecutive button presses`() {
+        lift.floor = 1
+
+        lift.pushFloor(2)
+        lift.pushFloor(3)
+
+        lift.timeStep()
+
+        assertEquals(2, lift.floor)
+        assertEquals(Doors.OPENED, lift.doors)
+
+        lift.timeStep()
+        assertEquals(3, lift.floor)
+        assertEquals(Doors.OPENED, lift.doors)
+    }
+
+    @Test
+    fun `floors and doors - when pressing floors out of order going up - opens in order`() {
+        lift.floor = 1
+
+        lift.pushFloor(2)
+        lift.pushFloor(5)
+        lift.pushFloor(3)
+
+        lift.timeStep()
+        lift.timeStep()
+        assertEquals(3, lift.floor)
+        assertEquals(Doors.OPENED, lift.doors)
+
+        lift.timeStep()
+        lift.timeStep()
+        assertEquals(5, lift.floor)
+        assertEquals(Doors.OPENED, lift.doors)
+    }
+
+    @Test
+    fun `floors and doors - when pressing floors out of order going down - opens in order`() {
+        lift.floor = 5
+
+        lift.pushFloor(2)
+        lift.pushFloor(3)
+
+        lift.timeStep()
+        lift.timeStep()
+        assertEquals(3, lift.floor)
+        assertEquals(Doors.OPENED, lift.doors)
+
+        lift.timeStep()
+        assertEquals(2, lift.floor)
+        assertEquals(Doors.OPENED, lift.doors)
     }
 
 //    @Test

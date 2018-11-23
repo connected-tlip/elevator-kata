@@ -46,9 +46,13 @@ class Lift(val speaker: Speaker) {
     // When someone presses the up or down button outside of an elevator
     // floor - Floor on which the person pressed the button
     // direction - Up or down depending on what was pressed
-    fun call(floor: Int, direction: Direction) {
-        targetFloor = floor
-        pushedButtons[floor] = true
+    fun call(calledFloor: Int, calledDirection: Direction) {
+        if (!calledDirection.equals(direction) && direction != Direction.NO_DIRECTION) {
+            return
+        }
+
+        targetFloor = calledFloor
+        pushedButtons[calledFloor] = true
     }
 
     fun timeStep() {
@@ -56,9 +60,13 @@ class Lift(val speaker: Speaker) {
             doors = Doors.CLOSED
         }
 
-        if (floor < targetFloor) {
+        if (targetFloor == null){
+            return
+        }
+
+        if (floor < targetFloor!!) {
             floor++
-        } else if (floor > targetFloor) {
+        } else if (floor > targetFloor!!) {
             floor--
         }
 
@@ -69,14 +77,29 @@ class Lift(val speaker: Speaker) {
         }
     }
 
+    fun timeStep(count: Int) {
+        for (i in 0..count) {
+            timeStep()
+        }
+    }
+
     // When someone presses "destination" from inside of the elevator
-    fun pushFloor(f: Int) {
+    fun pushFloor(floor: Int) {
+        if (direction == Direction.DOWN && floor >= this.floor
+            || direction == Direction.UP && floor <= this.floor) {
+            return
+        }
+
         pushedButtons[floor] = true
 
-        targetFloor = floor
+        if(targetFloor == null){
+            targetFloor = floor
+            return
+        }
+
         targetFloor = when (direction) {
-            Direction.UP -> Math.max(floor, targetFloor)
-            Direction.DOWN -> Math.min(floor, targetFloor)
+            Direction.UP -> Math.max(floor, targetFloor!!)
+            Direction.DOWN -> Math.min(floor, targetFloor!!)
             Direction.NO_DIRECTION -> floor
         }
     }

@@ -2,6 +2,7 @@ package com.connected.codingkata
 
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -205,30 +206,37 @@ class LiftTest {
         assertEquals(Doors.OPENED, lift.doors)
     }
 
-//    @Test
-//    fun `push multiple floor - stop at each floor`() {
-//        //setup
-//        lift.floor = 0
-//        lift.call(3, Direction.DOWN)
-//        lift.timeStep()
-//        lift.timeStep()
-//        lift.timeStep()
-//
-//        // Elevator is at floor 3
-//        lift.pushFloor(2)
-//        lift.pushFloor(0)
-//
-//        lift.timeStep()
-//        assertEquals(Doors.OPENED, lift.doors)
-//        assertEquals(2, lift.floor)
-//
-//        lift.timeStep()
-//        assertEquals(Doors.CLOSED, lift.doors)
-//
-//        lift.timeStep()
-//        assertEquals(Doors.OPENED, lift.doors)
-//        assertEquals(0, lift.floor)
-//    }
+    @Test
+    fun `push floor - press floor button in wrong down direction - button ignored`() {
+        lift.floor = 5
 
+        lift.call(4, Direction.DOWN)
+        lift.timeStep()
+
+        lift.pushFloor(3)
+        lift.pushFloor(7)
+
+        lift.timeStep()
+        assertEquals(3, lift.floor)
+
+        assertNotEquals(true, lift.pushedButtons[7])
+
+        lift.timeStep()
+        assertEquals(3, lift.floor)
+        assertEquals(Direction.NO_DIRECTION, lift.direction)
+    }
+
+    @Test
+    fun `call - elevator not going in same direction - call ignored`() {
+        lift.floor = 6
+
+        lift.pushFloor(3)
+        lift.call(5, Direction.UP)
+
+        lift.timeStep()
+
+        assertEquals(Doors.CLOSED, lift.doors)
+        assertEquals(Direction.DOWN, lift.direction)
+    }
 
 }
